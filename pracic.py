@@ -2,12 +2,10 @@ from cryptography.hazmat.primitives.asymmetric import rsa, padding
 from cryptography.hazmat.primitives.serialization import Encoding, PublicFormat, PrivateFormat, NoEncryption, load_pem_public_key, load_pem_private_key
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import hashes
-from cryptography.fernet import Fernet
-from tkinter import *
-from tkinter import filedialog
 from Crypto.Cipher import AES
 from Crypto.Random import get_random_bytes
-import os
+from tkinter import *
+from tkinter import filedialog
 
 # Generate RSA keys and save them to files
 def generate_rsa_keys():
@@ -33,7 +31,7 @@ def generate_rsa_keys():
 # Generate a new AES key and save it to a separate key file
 def generate_aes_key():
     key = get_random_bytes(32)
-    key_file_path = "aes_key.txt"
+    key_file_path = "tajni_kljuc.txt"
     with open(key_file_path, "wb") as key_file:
         key_file.write(key)
 
@@ -171,11 +169,11 @@ symmetric_browse_button = Button(symmetric_frame, text="Pretraži", command=symm
 symmetric_browse_button.grid(row=1, column=1)
 
 # Encrypt with symmetric AES using an existing key button
-symmetric_encrypt_existing_key_button = Button(symmetric_frame, text="Enkriptiraj", command=lambda: encrypt_symmetric_aes_with_existing_key(symmetric_file_path.get(), "aes_key.txt"))
+symmetric_encrypt_existing_key_button = Button(symmetric_frame, text="Enkriptiraj", command=lambda: encrypt_symmetric_aes_with_existing_key(symmetric_file_path.get(), "tajni_kljuc.txt"))
 symmetric_encrypt_existing_key_button.grid(row=3, column=0, padx=10, pady=10)
 
 # Decrypt with symmetric AES using an existing key button
-symmetric_decrypt_existing_key_button = Button(symmetric_frame, text="Dekriptiraj", command=lambda: decrypt_symmetric_aes_with_existing_key(symmetric_file_path.get(), "aes_key.txt"))
+symmetric_decrypt_existing_key_button = Button(symmetric_frame, text="Dekriptiraj", command=lambda: decrypt_symmetric_aes_with_existing_key(symmetric_file_path.get(), "tajni_kljuc.txt"))
 symmetric_decrypt_existing_key_button.grid(row=3, column=1, padx=10, pady=10)
 
 
