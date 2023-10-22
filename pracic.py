@@ -17,13 +17,13 @@ def generate_rsa_keys():
     )
     public_key = private_key.public_key()
 
-    with open("private_key.txt", "wb") as f:
+    with open("privatni_kljuc.txt", "wb") as f:
         f.write(private_key.private_bytes(
             encoding=Encoding.PEM,
             format=PrivateFormat.PKCS8,
             encryption_algorithm=NoEncryption()
         ))
-    with open("public_key.txt", "wb") as f:
+    with open("javni_kljuc.txt", "wb") as f:
         f.write(public_key.public_bytes(
             encoding=Encoding.PEM,
             format=PublicFormat.SubjectPublicKeyInfo
@@ -41,7 +41,7 @@ def encrypt_asymmetric_rsa(file_path):
     with open(file_path, "rb") as f:
         file_data = f.read()
 
-    with open("public_key.txt", "rb") as f:
+    with open("javni_kljuc.txt", "rb") as f:
         public_key = load_pem_public_key(
             f.read(),
             backend=default_backend()
@@ -64,7 +64,7 @@ def decrypt_asymmetric_rsa(file_path):
     with open(file_path, "rb") as f:
         encrypted_data = f.read()
 
-    with open("private_key.txt", "rb") as f:
+    with open("privatni_kljuc.txt", "rb") as f:
         private_key = load_pem_private_key(
             f.read(),
             password=None,
@@ -126,16 +126,16 @@ def decrypt_symmetric_aes(file_path):
 root = Tk()
 root.title("Encryption and Decryption")
 
-# Generate RSA keys button
-generate_keys_button = Button(root, text="Generate RSA Keys", command=generate_rsa_keys)
-generate_keys_button.pack(pady=10)
-
 # Asymmetric encryption buttons
 asymmetric_frame = LabelFrame(root, text="Asymmetric Encryption with RSA")
 asymmetric_frame.pack(padx=10, pady=10)
 
+# Generate RSA keys button
+generate_keys_button = Button(asymmetric_frame, text="Generate RSA Keys", command=generate_rsa_keys)
+generate_keys_button.grid(row=0, column=0, columnspan=2, padx=10, pady=10)
+
 asymmetric_file_label = Label(asymmetric_frame, text="Select a file to encrypt/decrypt:")
-asymmetric_file_label.grid(row=0, column=0, padx=10, pady=10)
+asymmetric_file_label.grid(row=1, column=0, padx=10, pady=10)
 
 asymmetric_file_path = StringVar()
 
@@ -144,22 +144,26 @@ def asymmetric_browse_file():
     asymmetric_file_path.set(file_path)
 
 asymmetric_browse_button = Button(asymmetric_frame, text="Browse", command=asymmetric_browse_file)
-asymmetric_browse_button.grid(row=0, column=1)
+asymmetric_browse_button.grid(row=1, column=1)
 
 # Encrypt with asymmetric RSA button
 asymmetric_encrypt_button = Button(asymmetric_frame, text="Encrypt", command=lambda: encrypt_asymmetric_rsa(asymmetric_file_path.get()))
-asymmetric_encrypt_button.grid(row=1, column=0, padx=10, pady=10)
+asymmetric_encrypt_button.grid(row=2, column=0, padx=10, pady=10)
 
 # Decrypt with asymmetric RSA button
 asymmetric_decrypt_button = Button(asymmetric_frame, text="Decrypt", command=lambda: decrypt_asymmetric_rsa(asymmetric_file_path.get()))
-asymmetric_decrypt_button.grid(row=1, column=1, padx=10, pady=10)
+asymmetric_decrypt_button.grid(row=2, column=1, padx=10, pady=10)
 
 # Symmetric encryption buttons
 symmetric_frame = LabelFrame(root, text="Symmetric Encryption with AES")
 symmetric_frame.pack(padx=10, pady=10)
 
+# Generate AES key button
+generate_aes_key_button = Button(symmetric_frame, text="Generate AES Key", command=generate_aes_key)
+generate_aes_key_button.grid(row=0, column=0, columnspan=2, padx=10, pady=10)
+
 symmetric_file_label = Label(symmetric_frame, text="Select a file to encrypt/decrypt:")
-symmetric_file_label.grid(row=0, column=0, padx=10, pady=10)
+symmetric_file_label.grid(row=1, column=0, padx=10, pady=10)
 
 symmetric_file_path = StringVar()
 
@@ -168,19 +172,15 @@ def symmetric_browse_file():
     symmetric_file_path.set(file_path)
 
 symmetric_browse_button = Button(symmetric_frame, text="Browse", command=symmetric_browse_file)
-symmetric_browse_button.grid(row=0, column=1)
+symmetric_browse_button.grid(row=1, column=1)
 
 # Encrypt with symmetric AES button
 symmetric_encrypt_button = Button(symmetric_frame, text="Encrypt", command=lambda: encrypt_symmetric_aes(symmetric_file_path.get()))
-symmetric_encrypt_button.grid(row=1, column=0, padx=10, pady=10)
+symmetric_encrypt_button.grid(row=2, column=0, padx=10, pady=10)
 
 # Decrypt with symmetric AES button
 symmetric_decrypt_button = Button(symmetric_frame, text="Decrypt", command=lambda: decrypt_symmetric_aes(symmetric_file_path.get()))
-symmetric_decrypt_button.grid(row=1, column=1, padx=10, pady=10)
-
-# Generate AES key button
-generate_aes_key_button = Button(symmetric_frame, text="Generate AES Key", command=generate_aes_key)
-generate_aes_key_button.grid(row=2, column=0, columnspan=2, padx=10, pady=10)
+symmetric_decrypt_button.grid(row=2, column=1, padx=10, pady=10)
 
 # Run the main loop
 root.mainloop()
