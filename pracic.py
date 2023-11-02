@@ -1,11 +1,13 @@
+import hashlib
+from tkinter import *
+from tkinter import filedialog
 from cryptography.hazmat.primitives.asymmetric import rsa, padding
 from cryptography.hazmat.primitives.serialization import Encoding, PublicFormat, PrivateFormat, NoEncryption, load_pem_public_key, load_pem_private_key
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import hashes
 from Crypto.Cipher import AES
 from Crypto.Random import get_random_bytes
-from tkinter import *
-from tkinter import filedialog
+import os
 
 # Generate RSA keys and save them to files
 def generate_rsa_keys():
@@ -58,6 +60,8 @@ def encrypt_asymmetric_rsa(file_path):
     with open(file_path + ".enc", "wb") as f:
         f.write(encrypted_data)
 
+    print(f"Encryption complete. Encrypted file: {file_path}.enc")
+
 # Decrypt a file using asymmetric encryption with RSA
 def decrypt_asymmetric_rsa(file_path):
     with open(file_path, "rb") as f:
@@ -81,6 +85,8 @@ def decrypt_asymmetric_rsa(file_path):
 
     with open(file_path[:-4], "wb") as f:
         f.write(decrypted_data)
+
+    print(f"Decryption complete. Decrypted file: {file_path[:-4]}")
 
 # Encrypt a file using symmetric encryption with AES and an existing key
 def encrypt_symmetric_aes_with_existing_key(file_path, key_path):
@@ -116,19 +122,54 @@ def decrypt_symmetric_aes_with_existing_key(file_path, key_path):
     with open(file_path[:-4], "wb") as f:
         f.write(decrypted_data)
 
+    print(f"Decryption complete. Decrypted file: {file_path[:-4]}")
+
+# Create HASH of file
+# def create_hash(file_path):
+#     with open(file_path, 'rb') as file:
+#         data = file.read()
+#         sha256_hash = hashlib.sha256(data).hexdigest()
+#         return sha256_hash
+
+# def save_hash_to_file(file_path, output_file="hash.txt"):
+#     hash_value = create_hash(file_path)
+
+#     with open(output_file, 'w') as hash_file:
+#         hash_file.write(hash_value)
+
+
+def create_hash(file_path):
+    try:
+        with open(file_path, 'rb') as file:
+            data = file.read()
+            sha256_hash = hashlib.sha256(data).hexdigest()
+            return sha256_hash
+    except Exception as e:
+        return f"Error: {str(e)}"
+
+# Function to save the hash to "hash.txt"
+def save_hash_to_file(file_path):
+    hash_value = create_hash(file_path)
+    if hash_value and not hash_value.startswith("Error"):
+        with open("hash.txt", 'w') as hash_file:
+            hash_file.write(hash_value)
+        return f"SHA-256 Hash saved to 'hash.txt': {hash_value}"
+    else:
+        return hash_value
+
 # Create the GUI
 root = Tk()
-root.title("Zaštitnik podataka")
+root.title("Zaštitnik podataka by bujin")
 
 # Asymmetric encryption buttons
 asymmetric_frame = LabelFrame(root, text="Asimetrična enkripcija - RSA")
 asymmetric_frame.pack(padx=10, pady=10)
 
 # Generate RSA keys button
-generate_keys_button = Button(asymmetric_frame, text="Kreiraj RSA ključ", command=generate_rsa_keys)
+generate_keys_button = Button(asymmetric_frame, text="Kreiraj asimetrični RSA ključ", command=generate_rsa_keys)
 generate_keys_button.grid(row=0, column=0, columnspan=2, padx=10, pady=10)
 
-asymmetric_file_label = Label(asymmetric_frame, text="Odaberi datoteku za enkripciju/dekripciju:")
+asymmetric_file_label = Label(asymmetric_frame, text="Odaberi datoteku za asimetričnu enkripciju/dekripciju:")
 asymmetric_file_label.grid(row=1, column=0, padx=10, pady=10)
 
 asymmetric_file_path = StringVar()
@@ -149,14 +190,14 @@ asymmetric_decrypt_button = Button(asymmetric_frame, text="Dekriptiraj", command
 asymmetric_decrypt_button.grid(row=2, column=1, padx=10, pady=10)
 
 # Symmetric encryption buttons
-symmetric_frame = LabelFrame(root, text="Simetrična enkripcija - AES")
+symmetric_frame = LabelFrame(root, text="Simetrična enkripcija - AES")
 symmetric_frame.pack(padx=10, pady=10)
 
 # Generate AES key button
-generate_aes_key_button = Button(symmetric_frame, text="Kreiraj AES ključ", command=generate_aes_key)
+generate_aes_key_button = Button(symmetric_frame, text="Kreiraj simetrični AES ključ", command=generate_aes_key)
 generate_aes_key_button.grid(row=0, column=0, columnspan=2, padx=10, pady=10)
 
-symmetric_file_label = Label(symmetric_frame, text="Odaberi datoteku za enkripciju/dekripciju:")
+symmetric_file_label = Label(symmetric_frame, text="Odaberi datoteku za simetričnu enkripciju/dekripciju:")
 symmetric_file_label.grid(row=1, column=0, padx=10, pady=10)
 
 symmetric_file_path = StringVar()
@@ -176,6 +217,29 @@ symmetric_encrypt_existing_key_button.grid(row=3, column=0, padx=10, pady=10)
 symmetric_decrypt_existing_key_button = Button(symmetric_frame, text="Dekriptiraj", command=lambda: decrypt_symmetric_aes_with_existing_key(symmetric_file_path.get(), "tajni_kljuc.txt"))
 symmetric_decrypt_existing_key_button.grid(row=3, column=1, padx=10, pady=10)
 
+# Hash buttons
+hash_frame = LabelFrame(root, text="Sažetak poruke")
+hash_frame.pack(padx=10, pady=10)
+
+# Label to prompt the user to select a file
+hash_file_label = Label(hash_frame, text="Odaberi datoteku za kreiranje sažetka:")
+hash_file_label.grid(row=0, column=0, padx=10, pady=10)
+
+# StringVar to store the selected file path
+hash_file_path = StringVar()
+
+# Function to open a file dialog and set the selected file path
+def hash_browse_file():
+    file_path = filedialog.askopenfilename()
+    hash_file_path.set(file_path)
+
+# Button to browse and select a file
+hash_browse_button = Button(hash_frame, text="Pretraži", command=hash_browse_file)
+hash_browse_button.grid(row=1, column=1)
+
+# Button to create and save the hash
+hash_create_button = Button(hash_frame, text="Sažmi", command=lambda: print(save_hash_to_file(hash_file_path.get())))
+hash_create_button.grid(row=2, column=0, padx=10, pady=10)
 
 # Run the main loop
 root.mainloop()
