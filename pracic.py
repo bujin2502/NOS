@@ -125,19 +125,6 @@ def decrypt_symmetric_aes_with_existing_key(file_path, key_path):
     print(f"Decryption complete. Decrypted file: {file_path[:-4]}")
 
 # Create HASH of file
-# def create_hash(file_path):
-#     with open(file_path, 'rb') as file:
-#         data = file.read()
-#         sha256_hash = hashlib.sha256(data).hexdigest()
-#         return sha256_hash
-
-# def save_hash_to_file(file_path, output_file="hash.txt"):
-#     hash_value = create_hash(file_path)
-
-#     with open(output_file, 'w') as hash_file:
-#         hash_file.write(hash_value)
-
-
 def create_hash(file_path):
     try:
         with open(file_path, 'rb') as file:
