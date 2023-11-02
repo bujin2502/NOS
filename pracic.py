@@ -148,9 +148,13 @@ def save_hash_to_file(file_path):
 root = Tk()
 root.title("Zaštitnik podataka by bujin")
 
+# Postavite ravnotežnu težinu kolona za sve frejmove
+for i in range(3):
+    root.grid_columnconfigure(i, weight=1)
+
 # Asymmetric encryption buttons
 asymmetric_frame = LabelFrame(root, text="Asimetrična enkripcija - RSA")
-asymmetric_frame.pack(padx=10, pady=10)
+asymmetric_frame.grid(row=0, column=0, padx=10, pady=10, sticky='nsew')
 
 # Generate RSA keys button
 generate_keys_button = Button(asymmetric_frame, text="Kreiraj asimetrični RSA ključ", command=generate_rsa_keys)
@@ -178,7 +182,7 @@ asymmetric_decrypt_button.grid(row=2, column=1, padx=10, pady=10)
 
 # Symmetric encryption buttons
 symmetric_frame = LabelFrame(root, text="Simetrična enkripcija - AES")
-symmetric_frame.pack(padx=10, pady=10)
+symmetric_frame.grid(row=1, column=0, padx=10, pady=10, sticky='nsew')
 
 # Generate AES key button
 generate_aes_key_button = Button(symmetric_frame, text="Kreiraj simetrični AES ključ", command=generate_aes_key)
@@ -205,8 +209,8 @@ symmetric_decrypt_existing_key_button = Button(symmetric_frame, text="Dekriptira
 symmetric_decrypt_existing_key_button.grid(row=3, column=1, padx=10, pady=10)
 
 # Hash buttons
-hash_frame = LabelFrame(root, text="Sažetak poruke")
-hash_frame.pack(padx=10, pady=10)
+hash_frame = LabelFrame(root, text="Sažetak poruke, potpis poruke i provjera potpisa")
+hash_frame.grid(row=2, column=0, padx=10, pady=10, sticky='nsew')
 
 # Label to prompt the user to select a file
 hash_file_label = Label(hash_frame, text="Odaberi datoteku za kreiranje sažetka:")
@@ -222,11 +226,11 @@ def hash_browse_file():
 
 # Button to browse and select a file
 hash_browse_button = Button(hash_frame, text="Pretraži", command=hash_browse_file)
-hash_browse_button.grid(row=1, column=1)
+hash_browse_button.grid(row=0, column=1)
 
 # Button to create and save the hash
 hash_create_button = Button(hash_frame, text="Sažmi", command=lambda: print(save_hash_to_file(hash_file_path.get())))
-hash_create_button.grid(row=2, column=0, padx=10, pady=10)
+hash_create_button.grid(row=0, column=2, padx=10, pady=10)
 
 # Run the main loop
 root.mainloop()
