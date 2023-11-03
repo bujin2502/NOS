@@ -144,6 +144,42 @@ def save_hash_to_file(file_path):
     else:
         return hash_value
 
+# Create SIGNATURE of HASH
+def signature_hash(file_path):
+    with open(file_path, "rb") as f:
+        file_data = f.read()
+
+    with open("privatni_kljuc.txt", "rb") as f:
+        try:
+            private_key = load_pem_private_key(
+                f.read(),
+                password=None,
+                backend=default_backend()
+            )
+        except Exception as e:
+            print(f"Failed to load private key from privatni_kljuc.txt: {e}")
+            return
+
+    signature = private_key.sign(
+        file_data,
+        padding.PSS(
+            mgf=padding.MGF1(hashes.SHA256()),
+            salt_length=padding.PSS.MAX_LENGTH
+        ),
+        hashes.SHA256()
+    )
+
+    with open(file_path + "_.sig", "wb") as f:
+        f.write(signature)
+
+    print(f"Signing complete. Signature file: {file_path}_.sig")
+
+
+# Function to save the hash to "hash.txt"
+def save_signature_to_file(file_path):
+    print("Hello, World!")
+
+
 # Create the GUI
 root = Tk()
 root.title("Zaštitnik podataka by bujin")
@@ -208,8 +244,8 @@ symmetric_encrypt_existing_key_button.grid(row=3, column=0, padx=10, pady=10)
 symmetric_decrypt_existing_key_button = Button(symmetric_frame, text="Dekriptiraj", command=lambda: decrypt_symmetric_aes_with_existing_key(symmetric_file_path.get(), "tajni_kljuc.txt"))
 symmetric_decrypt_existing_key_button.grid(row=3, column=1, padx=10, pady=10)
 
-# Hash buttons
-hash_frame = LabelFrame(root, text="Sažetak poruke, potpis poruke i provjera potpisa")
+# Hash frame
+hash_frame = LabelFrame(root, text="Kreiranje sažetka poruke")
 hash_frame.grid(row=2, column=0, padx=10, pady=10, sticky='nsew')
 
 # Label to prompt the user to select a file
@@ -231,6 +267,30 @@ hash_browse_button.grid(row=0, column=1)
 # Button to create and save the hash
 hash_create_button = Button(hash_frame, text="Sažmi", command=lambda: print(save_hash_to_file(hash_file_path.get())))
 hash_create_button.grid(row=0, column=2, padx=10, pady=10)
+
+# Signing frame
+sign_frame = LabelFrame(root, text="Potpis poruke")
+sign_frame.grid(row=3, column=0, padx=10, pady=10, sticky='nsew')
+
+# Label to prompt the user to select a file
+signature_file_label = Label(sign_frame, text="Odaberi datoteku za digitalno potpisivanje:")
+signature_file_label.grid(row=0, column=0, padx=10, pady=10)
+
+# StringVar to store the selected file path
+signature_file_path = StringVar()
+
+# Function to open a file dialog and set the selected file path
+def signature_browse_file():
+    file_path = filedialog.askopenfilename()
+    signature_file_path.set(file_path)
+
+# Button to browse and select a file
+signature_browse_button = Button(sign_frame, text="Pretraži", command=signature_browse_file)
+signature_browse_button.grid(row=0, column=1)
+
+# Button to create and save the signature
+signature_create_button = Button(sign_frame, text="Potpiši", command=lambda: signature_hash(signature_file_path.get()))
+signature_create_button.grid(row=0, column=2, padx=10, pady=10)
 
 # Run the main loop
 root.mainloop()
