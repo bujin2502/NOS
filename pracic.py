@@ -7,7 +7,10 @@ from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import hashes
 from Crypto.Cipher import AES
 from Crypto.Random import get_random_bytes
+from cryptography.exceptions import InvalidSignature
 import os
+from Crypto.Signature import pkcs1_15
+from Crypto.PublicKey import RSA
 
 # Generate RSA keys and save them to files
 def generate_rsa_keys():
@@ -146,22 +149,34 @@ def save_hash_to_file(file_path):
 
 # Create SIGNATURE of HASH
 def signature_hash(file_path):
-    with open(file_path, "rb") as f:
-        file_data = f.read()
+    if not file_path:
+        print("Molimo odaberite datoteku za potpisivanje.")
+        return
 
-    with open("privatni_kljuc.txt", "rb") as f:
-        try:
+    # Stvaranje sažetka (hash) datoteke
+    hash_value = create_hash(file_path.get())
+
+    if hash_value.startswith("Error"):
+        print(f"Greška pri kreiranju hash vrijednosti: {hash_value}")
+        return
+
+    # Dohvatite stvarnu putanju datoteke iz StringVar
+    file_path_value = file_path.get()
+
+    try:
+        with open("privatni_kljuc.txt", "rb") as f:
             private_key = load_pem_private_key(
                 f.read(),
                 password=None,
                 backend=default_backend()
             )
-        except Exception as e:
-            print(f"Failed to load private key from privatni_kljuc.txt: {e}")
-            return
+    except Exception as e:
+        print(f"Greška pri učitavanju privatnog ključa: {e}")
+        return
 
+    # Potpisivanje hash vrijednosti
     signature = private_key.sign(
-        file_data,
+        hash_value.encode('utf-8'),  # Potpišite hash vrijednost
         padding.PSS(
             mgf=padding.MGF1(hashes.SHA256()),
             salt_length=padding.PSS.MAX_LENGTH
@@ -169,16 +184,42 @@ def signature_hash(file_path):
         hashes.SHA256()
     )
 
-    with open(file_path + "_.sig", "wb") as f:
+    # Izračunajte potpunu putanju datoteke za potpisani hash
+    signature_file_path = file_path_value + "_.sig"
+
+    with open(signature_file_path, "wb") as f:
         f.write(signature)
 
-    print(f"Signing complete. Signature file: {file_path}_.sig")
+    print(f"Potpisivanje završeno. Datoteka s potpisom: {signature_file_path}")
 
 
-# Function to save the hash to "hash.txt"
-def save_signature_to_file(file_path):
-    print("Hello, World!")
+# U funkciji za verifikaciju koristite odvojenu datoteku s potpisanim hash-om
+def verify_signature(public_key_path, signature_path, hash_file_path):
+    try:
+        with open(public_key_path, "rb") as key_file:
+            public_key = load_pem_public_key(key_file.read(), backend=default_backend())
+    except Exception as e:
+        print(f"Greška pri učitavanju javnog ključa: {e}")
+        return
 
+    try:
+        with open(signature_path, "rb") as signature_file:
+            signature = signature_file.read()
+
+        with open(hash_file_path, "rb") as hash_file:
+            hash_value_bytes = hash_file.read()
+
+        public_key.verify(
+            signature,
+            hash_value_bytes,
+            padding.PKCS1v15(),
+            hashes.SHA256()
+        )
+        print("Potpis je valjan.")
+    except InvalidSignature:
+        print("Potpis nije valjan.")
+    except Exception as e:
+        print(f"Greška pri provjeri potpisa: {str(e)}")
 
 # Create the GUI
 root = Tk()
@@ -289,8 +330,29 @@ signature_browse_button = Button(sign_frame, text="Pretraži", command=signature
 signature_browse_button.grid(row=0, column=1)
 
 # Button to create and save the signature
-signature_create_button = Button(sign_frame, text="Potpiši", command=lambda: signature_hash(signature_file_path.get()))
+signature_create_button = Button(sign_frame, text="Potpiši", command=lambda: signature_hash(signature_file_path))
 signature_create_button.grid(row=0, column=2, padx=10, pady=10)
+
+# Verify signature
+v_sign_frame = LabelFrame(root, text="Verificiranje potpisa")
+v_sign_frame.grid(row=4, column=0, padx=10, pady=10, sticky='nsew')
+
+# Add a label and button to select the original file for signature verification
+v_original_file_label = Label(v_sign_frame, text="Odaberi izvornu datoteku:")
+v_original_file_label.grid(row=1, column=0, padx=10, pady=10)
+
+v_original_file_path = StringVar()
+
+def v_original_browse_file():
+    file_path = filedialog.askopenfilename()
+    v_original_file_path.set(file_path)
+
+v_original_browse_button = Button(v_sign_frame, text="Pretraži", command=v_original_browse_file)
+v_original_browse_button.grid(row=1, column=1)
+
+# Modify the button to call the verify_signature function with the original file path
+v_signature_create_button = Button(v_sign_frame, text="Ovjeri potpis", command=lambda: verify_signature('javni_kljuc.txt', 'text.txt_.sig', v_original_file_path.get()))
+v_signature_create_button.grid(row=1, column=2, padx=10, pady=10)
 
 # Run the main loop
 root.mainloop()
