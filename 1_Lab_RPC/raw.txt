@@ -1,0 +1,40 @@
+(<AddressFamily.AF_INET: 2>, <SocketKind.SOCK_STREAM: 1>, 6, '', ('142.251.140.67', 0)),
+(<AddressFamily.AF_INET: 2>, <SocketKind.SOCK_DGRAM: 2>, 17, '', ('142.251.140.67', 0)),
+(<AddressFamily.AF_INET: 2>, <SocketKind.SOCK_RAW: 3>, 0, '', ('142.251.140.67', 0)),
+(<AddressFamily.AF_INET6: 10>, <SocketKind.SOCK_STREAM: 1>, 6, '', ('2a00:1450:4017:815::2003', 0, 0, 0)),
+(<AddressFamily.AF_INET6: 10>, <SocketKind.SOCK_DGRAM: 2>, 17, '', ('2a00:1450:4017:815::2003', 0, 0, 0)),
+(<AddressFamily.AF_INET6: 10>, <SocketKind.SOCK_RAW: 3>, 0, '', ('2a00:1450:4017:815::2003', 0, 0, 0))
+
+
+<AddressFamily>,    # Adresna obitelj (AF_INET za IPv4, AF_INET6 za IPv6)
+<SocketKind>,       # Tip soketa (SOCK_STREAM za TCP, SOCK_DGRAM za UDP, SOCK_RAW za sirove sokete)
+Protokol,           # Protokol (6 za TCP, 17 za UDP, 0 neodređen protokol)
+'',                 # Prazno mjesto ('') predstavlja rezervirano mjesto za ime domaćina, ali u ovom slučaju, nije dostupno ili nije relevantno pa ostaje prazno.
+(IP_adresa, Port)   # Tuple s IP adresom i portom
+
+AddressFamily.AF_INET: 2 znači da je adresna obitelj za taj slučaj IPv4, a numerička vrijednost 2 predstavlja istu informaciju na način koji se može koristiti unutar računalnog sustava za identifikaciju te adresne obitelji.
+
+AddressFamily.AF_INET6: 10 znači da je adresna obitelj za taj slučaj IPv6, a numerička vrijednost 10 predstavlja istu informaciju na način koji se može koristiti unutar računalnog sustava za identifikaciju te adresne obitelji.
+
+<AddressFamily.AF_INET6: 10>: This is an enumeration value representing the address family. In this case, it indicates the use of IPv6, as AF_INET6 stands for IPv6. The value 10 is the constant associated with IPv6 in the socket module.
+
+<SocketKind.SOCK_RAW: 3>: This is another enumeration value representing the socket type. SOCK_RAW stands for a raw socket, which is a socket type that allows direct access to lower-level communication protocols. The value 3 is the constant associated with SOCK_RAW in the socket module.
+
+0: This is the protocol value associated with the socket. In this case, 0 is often used for the default protocol associated with the specified address family and socket type.
+
+'': This is an empty string, which represents the socket's bound address. An empty string indicates that the socket is not bound to a specific address.
+
+('2a00:1450:4017:815::2003', 0, 0, 0): This is a tuple representing the remote address to which the socket is connected. In this case, it's an IPv6 address ('2a00:1450:4017:815::2003') and three zeros. The three zeros are typically used for port, flow info, and scope ID, respectively, in the context of IPv6.
+
+
+RAW SOCKET: Low-level access to network protocols.
+DGRAM SOCKET: Datagram-oriented communication (connectionless).
+STREAM SOCKET: Stream-oriented communication (connection-oriented).
+
+('wm-in-f94.1e100.net', [], ['64.233.166.94'])
+
+socket.gethostbyaddr(numeric_ip): Ova funkcija uzima numeričku IP adresu (numeric_ip) i vraća trojku (tuple) koja sadrži simbolički naziv hosta, alias listu i IP adresu u obrnutom redoslijedu.
+
+symbolic_address, _, _: Ova linija koristi tuple unpacking kako bi raspakirala trojku. Prva vrijednost (symbolic_address) je simbolički naziv hosta, a preostale dvije (_) su tzv. "plah" (underscore) promjenljive koje označavaju da se ne koriste. To se često koristi kada želimo dohvatiti samo određene vrijednosti iz tuple-a, a neke druge nas ne zanimaju.
+
+Dakle, linija koda u cijelosti znači da se simbolički naziv hosta povezan s numeričkom IP adresom dobiva iz funkcije socket.gethostbyaddr, a ta vrijednost se dodjeljuje varijabli symbolic_address. Preostale dvije vrijednosti iz trojke (alias lista i numerička IP adresa) se ne koriste u ovom kontekstu.
