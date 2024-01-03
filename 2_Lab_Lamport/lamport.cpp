@@ -247,10 +247,6 @@ int main(int argc, char *argv[]){
     }
 
     globVar.broj_procesa = vProces.size();
-/*     if(broj_procesa != brojac) {
-         printf("Error\n");
-         exit(0);
-     } */
 
     for(int i = 0; i < globVar.broj_procesa; i++){
         if(fork() == 0){
