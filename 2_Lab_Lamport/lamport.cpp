@@ -303,17 +303,6 @@ int main(int argc, char *argv[])
     }
   }
 
-  for (const auto &proc : vProces)
-  {
-    cout << "Process ID: " << proc.idProcesa << ", Clock: " << proc.sat << endl;
-    cout << "Waiting queue: ";
-    for (const auto &wait : proc.red_cekanja)
-    {
-      cout << wait << " ";
-    }
-    cout << endl;
-  }
-
   globVar.broj_procesa = vProces.size();
 
   for (int i = 0; i < globVar.broj_procesa; i++)
