@@ -20,7 +20,7 @@ class Poruka
 public:
   int posiljatelj;
   int primatelj;
-  int vrijeme;
+  int ura;
   char tip_poruke;
 };
 
@@ -101,7 +101,7 @@ void primi(Proces &proces)
       exit(0);
     }
     sem_wait(&globVar.Semaphore);
-    printf("P%d primio %c(%d, %d) od P%d\n", proces.idProcesa, p.tip_poruke, p.posiljatelj, p.vrijeme, p.posiljatelj);
+    printf("P%d primio %c(%d, %d) od P%d\n", proces.idProcesa, p.tip_poruke, p.posiljatelj, p.ura, p.posiljatelj);
     globVar.primljenaPoruka.push(p);
     sem_post(&globVar.Semaphore);
   }
@@ -124,7 +124,7 @@ void posalji(int idProcesa, Poruka &p)
     exit(0);
   }
   sem_wait(&globVar.Semaphore);
-  printf("P%d poslao %c(%d, %d) k P%d\n", p.posiljatelj, p.tip_poruke, p.posiljatelj, p.vrijeme, p.primatelj);
+  printf("P%d poslao %c(%d, %d) k P%d\n", p.posiljatelj, p.tip_poruke, p.posiljatelj, p.ura, p.primatelj);
   sem_post(&globVar.Semaphore);
 }
 
@@ -133,7 +133,7 @@ void obrisi(list<Poruka> &listaPoruka, Poruka &poruka)
   list<Poruka>::iterator it = listaPoruka.begin();
   while (it != listaPoruka.end())
   {
-    if ((*it).posiljatelj == poruka.posiljatelj && (*it).vrijeme == poruka.vrijeme)
+    if ((*it).posiljatelj == poruka.posiljatelj && (*it).ura == poruka.ura)
     {
       listaPoruka.erase(it++);
       break;
@@ -160,13 +160,13 @@ void pomakniSat(Proces &p, int sat)
 
 bool provjeriPoruke(const Poruka &a, const Poruka &b)
 {
-  if (a.vrijeme == b.vrijeme && a.posiljatelj < b.posiljatelj)
+  if (a.ura == b.ura && a.posiljatelj < b.posiljatelj)
     return true;
-  if (a.vrijeme == b.vrijeme && a.posiljatelj > b.posiljatelj)
+  if (a.ura == b.ura && a.posiljatelj > b.posiljatelj)
     return false;
-  if (a.vrijeme < b.vrijeme)
+  if (a.ura < b.ura)
     return true;
-  if (a.vrijeme > b.vrijeme)
+  if (a.ura > b.ura)
     return false;
   return true;
 }
@@ -189,11 +189,11 @@ void obradaZahtjeva(Proces &p)
     {
       p.lista_zahtjeva.push_back(poruka);
       p.lista_zahtjeva.sort(provjeriPoruke);
-      pomakniSat(p, poruka.vrijeme);
+      pomakniSat(p, poruka.ura);
       odgovor.posiljatelj = p.idProcesa;
       odgovor.primatelj = poruka.posiljatelj;
       odgovor.tip_poruke = 'O';
-      odgovor.vrijeme = p.sat;
+      odgovor.ura = p.sat;
       posalji(odgovor.primatelj, odgovor);
     }
     else if (poruka.tip_poruke == 'O')
@@ -201,7 +201,7 @@ void obradaZahtjeva(Proces &p)
       sem_wait(&globVar.Semaphore);
       globVar.broj_odgovora++;
       sem_post(&globVar.Semaphore);
-      pomakniSat(p, poruka.vrijeme);
+      pomakniSat(p, poruka.ura);
     }
     else if (poruka.tip_poruke == 'I')
     {
@@ -215,7 +215,7 @@ void KO(Proces &p)
   Poruka zahtjev, odlazna_poruka;
   zahtjev.posiljatelj = p.idProcesa;
   zahtjev.tip_poruke = 'Z';
-  zahtjev.vrijeme = p.sat;
+  zahtjev.ura = p.sat;
   p.lista_zahtjeva.push_back(zahtjev);
   p.lista_zahtjeva.sort(provjeriPoruke);
 
@@ -237,7 +237,7 @@ void KO(Proces &p)
   obrisi(p.lista_zahtjeva, zahtjev);
   odlazna_poruka.posiljatelj = p.idProcesa;
   odlazna_poruka.tip_poruke = 'I';
-  odlazna_poruka.vrijeme = zahtjev.vrijeme;
+  odlazna_poruka.ura = zahtjev.ura;
 
   for (int i = 1; i <= globVar.broj_procesa; i++)
   {
@@ -276,40 +276,15 @@ void posao(Proces &proces)
   }
 }
 
-int main(int argc, char *argv[])
+void upraviteljProcesima(vector<Proces> &Procesi)
 {
-  Proces proces;
-  int brojac = 0;
-  vector<Proces> vProces(0);
-
-  for (int i = 1; i < argc; i++)
-  {
-    if (strcmp(argv[i], "@") == 0)
-    {
-      brojac++;
-    }
-    if (brojac == 0)
-    {
-      proces.idProcesa = i;
-      proces.sat = atoi(argv[i]);
-      vProces.push_back(proces);
-    }
-    else
-    {
-      if (!strcmp(argv[i], "@") == 0)
-      {
-        vProces[brojac - 1].red_cekanja.push_back(atoi(argv[i]));
-      }
-    }
-  }
-
-  globVar.broj_procesa = vProces.size();
+  globVar.broj_procesa = Procesi.size();
 
   for (int i = 0; i < globVar.broj_procesa; i++)
   {
     if (fork() == 0)
     {
-      posao(vProces[i]);
+      posao(Procesi[i]);
       exit(0);
     }
   }
@@ -318,6 +293,37 @@ int main(int argc, char *argv[])
   {
     wait(NULL);
   }
+}
+
+int main(int argc, char *argv[])
+{
+  Proces proces;
+  int brojac = 0;
+  vector<Proces> Procesi(0);
+
+  for (int i = 1; i < argc; i++)
+  {
+    std::string arg = argv[i];
+    if (arg.compare("@") == 0)
+    {
+      brojac++;
+    }
+    if (brojac == 0)
+    {
+      proces.idProcesa = i;
+      proces.sat = std::stoi(arg);
+      Procesi.push_back(proces);
+    }
+    else
+    {
+      if (arg.compare("@") != 0)
+      {
+        Procesi[brojac - 1].red_cekanja.push_back(std::stoi(arg));
+      }
+    }
+  }
+
+  upraviteljProcesima(Procesi);
 
   return 0;
 }
